@@ -1,4 +1,5 @@
 import io.freefair.gradle.plugins.okhttp.tasks.UploadFile
+import org.springframework.boot.gradle.plugin.SpringBootPlugin
 
 plugins {
     id "org.springframework.boot" version "3.5.8" apply false

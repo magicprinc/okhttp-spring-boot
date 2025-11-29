@@ -7,11 +7,13 @@ import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Cache;
 import okhttp3.CertificatePinner;
+import okhttp3.CompressionInterceptor;
 import okhttp3.ConnectionPool;
 import okhttp3.CookieJar;
 import okhttp3.Dispatcher;
 import okhttp3.Dns;
 import okhttp3.EventListener;
+import okhttp3.Gzip;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.ObjectProvider;
@@ -30,9 +32,12 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * https://github.com/freefair/okhttp-spring-boot
+ * https://github.com/magicprinc/okhttp-spring-boot
  * @author Lars Grefer
  */
 @Slf4j
@@ -41,6 +46,7 @@ import java.util.concurrent.TimeUnit;
 @ConditionalOnClass(OkHttpClient.class)
 @EnableConfigurationProperties(OkHttpProperties.class)
 public class OkHttp3AutoConfiguration {
+    private static final CompressionInterceptor.DecompressionAlgorithm[] CIDA = new CompressionInterceptor.DecompressionAlgorithm[0];
 
     @Autowired
     private OkHttpProperties okHttpProperties;
@@ -99,6 +105,19 @@ public class OkHttp3AutoConfiguration {
         }
 
         applicationInterceptors.forEach(builder::addInterceptor);
+
+        if (okHttpProperties.isAddDefaultInterceptors()){
+            var da = new ArrayList<CompressionInterceptor.DecompressionAlgorithm>(3);
+            try {
+                da.add(okhttp3.zstd.Zstd.INSTANCE);
+            } catch (Throwable ignore){}
+            try {
+                da.add(okhttp3.brotli.Brotli.INSTANCE);
+            } catch (Throwable ignore){}
+            // see also: okhttp3.brotli.BrotliInterceptor
+            da.add(Gzip.INSTANCE);
+            builder.addInterceptor(new CompressionInterceptor(da.toArray(CIDA)));
+        }
 
         networkInterceptors.forEach(builder::addNetworkInterceptor);
 

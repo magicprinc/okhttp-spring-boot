@@ -71,6 +71,8 @@ public class OkHttpProperties {
     @NestedConfigurationProperty
     private final ConnectionPoolProperties connectionPool = new ConnectionPoolProperties();
 
+    private boolean addDefaultInterceptors;
+
     /**
      * @author Lars Grefer
      * @see okhttp3.Cache

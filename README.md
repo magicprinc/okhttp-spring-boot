@@ -25,3 +25,5 @@ dependencies {
     <version>${version}</version>
 </dependency>
 ```
+https://github.com/freefair/okhttp-spring-boot
+https://github.com/magicprinc/okhttp-spring-boot

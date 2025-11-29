@@ -42,6 +42,7 @@ public class OkHttpProperties {
      * enforced on the acknowledging pongs.
      *
      * <p>The default value of 0 disables client-initiated pings.
+     * @see okhttp3.OkHttpClient.Builder#pingInterval(java.time.Duration)
      */
     private Duration pingInterval = Duration.ZERO;
 

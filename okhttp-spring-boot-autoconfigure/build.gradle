@@ -11,8 +11,16 @@ plugins {
 
 description = "OkHttp Spring Boot AutoConfigure"
 
-tasks.named('compileJava') {
+lombok {
+    delombok {
+        enabled = false
+    }
+    version = 'latest.release'
+}
+
+compileJava { // tasks.named('compileJava')
     inputs.files(processResources)
+    options.compilerArgs += ['--enable-preview']
 }
 
 tasks.named('jacocoTestReport', JacocoReport) {

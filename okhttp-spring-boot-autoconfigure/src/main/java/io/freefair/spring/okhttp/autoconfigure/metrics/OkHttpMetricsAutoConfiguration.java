@@ -1,10 +1,10 @@
 package io.freefair.spring.okhttp.autoconfigure.metrics;
 
 import io.freefair.spring.okhttp.autoconfigure.OkHttpProperties;
-import io.micrometer.core.instrument.binder.okhttp3.OkHttpConnectionPoolMetrics;
-import io.micrometer.core.instrument.binder.okhttp3.OkHttpMetricsEventListener;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.binder.okhttp3.OkHttpConnectionPoolMetrics;
+import io.micrometer.core.instrument.binder.okhttp3.OkHttpMetricsEventListener;
 import okhttp3.ConnectionPool;
 import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +21,8 @@ import org.springframework.util.CollectionUtils;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static io.freefair.spring.okhttp.OkHttpUtils.nonEmpty;
 
 @AutoConfiguration(after = CompositeMeterRegistryAutoConfiguration.class)
 @ConditionalOnBean(MeterRegistry.class)
@@ -40,7 +42,7 @@ public class OkHttpMetricsAutoConfiguration {
                 .includeHostTag(properties.isIncludeHostTag());
 
         List<String> requestTagKeys = properties.getRequestTagKeys();
-        if (!CollectionUtils.isEmpty(requestTagKeys)) {
+        if (nonEmpty(requestTagKeys)) {
             builder = builder.requestTagKeys(requestTagKeys);
         }
 

@@ -24,7 +24,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.FileSystemUtils;
 
 import javax.net.ssl.HostnameVerifier;
@@ -34,6 +33,8 @@ import java.nio.file.Files;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
+
+import static io.freefair.spring.okhttp.OkHttpUtils.nonEmpty;
 
 /**
  * https://github.com/freefair/okhttp-spring-boot
@@ -100,7 +101,7 @@ public class OkHttp3AutoConfiguration {
         builder.followSslRedirects(okHttpProperties.isFollowSslRedirects());
         builder.retryOnConnectionFailure(okHttpProperties.isRetryOnConnectionFailure());
 
-        if (!CollectionUtils.isEmpty(okHttpProperties.getProtocols())) {
+        if (nonEmpty(okHttpProperties.getProtocols())){
             builder.protocols(okHttpProperties.getProtocols());
         }
 

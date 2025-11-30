@@ -3,6 +3,7 @@ package io.freefair.spring.okhttp.autoconfigure;
 import io.freefair.spring.okhttp.ApplicationInterceptor;
 import io.freefair.spring.okhttp.NetworkInterceptor;
 import io.freefair.spring.okhttp.OkHttp3Configurer;
+import io.freefair.spring.okhttp.async.OkHttpVtExecutorService;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Cache;
@@ -75,7 +76,6 @@ public class OkHttp3AutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnMissingBean
     public OkHttpClient okHttp3Client(
             ObjectProvider<Cache> cache,
             ObjectProvider<CookieJar> cookieJar,
@@ -137,6 +137,17 @@ public class OkHttp3AutoConfiguration {
         dispatcher.ifUnique(builder::dispatcher);
 
         return builder.build();
+    }
+
+    /// @see okhttp3.Dispatcher
+    /// @see io.freefair.spring.okhttp.autoconfigure.OkHttpProperties#dispatcher
+    @Bean
+    @ConditionalOnMissingBean
+    public Dispatcher okHttp3Dispatcher() {
+        var dispatcher = new Dispatcher(OkHttpVtExecutorService.INSTANCE);
+        dispatcher.setMaxRequests(okHttpProperties.getDispatcher().maxRequests);
+        dispatcher.setMaxRequestsPerHost(okHttpProperties.getDispatcher().maxRequestsPerHost);
+        return dispatcher;
     }
 
     @Bean

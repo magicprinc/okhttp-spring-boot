@@ -101,7 +101,7 @@ public class OkHttpClientRequest extends AbstractClientHttpRequest implements St
 
         RequestBody body = null;
 
-        if (bufferBody != null) {
+        if (bufferBody != null){
             ByteString bodyData = bufferBody.readByteString();
             if (headers.getContentLength() < 0) {
                 headers.setContentLength(bodyData.size());
@@ -124,7 +124,8 @@ public class OkHttpClientRequest extends AbstractClientHttpRequest implements St
         return builder.build();
     }
 
-    public static Request.Builder buildRequest () {
+    /// @see io.freefair.spring.okhttp.OkHttpUtils#urlBuilder(String)
+    public static Request.Builder requestBuilder() {
         return new Request.Builder();
     }
 

@@ -68,7 +68,8 @@ public final class OkHttpUtils {
         without creating {@link HttpUrl} beforehand.
 
      That is, there is an url-template, and it is necessary to slightly modify it, e.g.: substitute variables.
-     */
+     @see io.freefair.spring.okhttp.client.OkHttpClientRequest#requestBuilder
+    */
     public static HttpUrl.Builder urlBuilder (String startingUrl) {
         return new HttpUrl.Builder().parse$okhttp(null/*@Nullable HttpUrl base*/, startingUrl);
     }

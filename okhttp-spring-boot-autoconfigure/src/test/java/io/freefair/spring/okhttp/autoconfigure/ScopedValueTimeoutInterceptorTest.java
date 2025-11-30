@@ -1,10 +1,14 @@
 package io.freefair.spring.okhttp.autoconfigure;
 
+import io.freefair.spring.okhttp.async.OkHttpFuture;
 import io.freefair.spring.okhttp.async.OkHttpVtExecutorService;
 import io.freefair.spring.okhttp.client.OkHttpClientRequest;
+import lombok.Cleanup;
 import lombok.val;
+import okhttp3.Call;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.Response;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junitpioneer.jupiter.SetSystemProperty;
@@ -14,6 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.concurrent.ExecutionException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -36,9 +41,9 @@ class ScopedValueTimeoutInterceptorTest {
         assertSame(Foo.A.getClass(), Foo.B.getClass());
         assertNotNull(okHttpClient);
 
-        Request req = OkHttpClientRequest.buildRequest().url("https://www.coachoutlet.com/").get().build();
+        Request req = OkHttpClientRequest.requestBuilder().url("https://www.coachoutlet.com/").get().build();
 
-        var resp = okHttpClient.newCall(req).execute();
+        @Cleanup var resp = okHttpClient.newCall(req).execute();
         assertEquals(403, resp.code());
         System.out.println(resp);
 
@@ -80,5 +85,37 @@ class ScopedValueTimeoutInterceptorTest {
                         })
                 );
         assertEquals(579, result.get());
+    }
+
+    @Test
+    void _dispatcher() throws ExecutionException, InterruptedException {
+        assertNotNull(okHttpClient.dispatcher());
+
+        var req = new Request.Builder()
+                .url("https://github.com")
+                .get()
+                .build();
+
+        var f = new OkHttpFuture() {
+            @Override
+            public void onResponse(Call call, Response response) {
+                try {
+                    var thread = Thread.currentThread();
+                    assertTrue(thread.isVirtual());
+                    assertTrue(thread.isDaemon());
+                    assertTrue(thread.isAlive());
+                    // VirtualThread[#55,OkHttp https://www.coachoutlet.com/...]/runnable@ForkJoinPool-1-worker-1
+                    assertTrue(thread.getName().startsWith("Ok"));
+                    super.onResponse(call, response);
+                } catch (Throwable e){
+                    completeExceptionally(e);
+                }
+            }
+        };
+
+        okHttpClient.newCall(req).enqueue(f);
+
+        @Cleanup var resp = f.get();
+        System.out.println(resp);
     }
 }

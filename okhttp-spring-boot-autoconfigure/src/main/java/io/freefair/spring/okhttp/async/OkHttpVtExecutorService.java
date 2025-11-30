@@ -20,7 +20,7 @@ public class OkHttpVtExecutorService extends AbstractExecutorService implements 
         log.warn("UncaughtExceptionHandler @ {}", thread, failure);
     };
 
-    public static final OkHttpVtExecutorService INSTANCE = new OkHttpVtExecutorService();
+    public static final OkHttpVtExecutorService INSTANCE = new OkHttpVtExecutorService("OK-");
 
     final LongAdder cntAdded = new LongAdder();
 
@@ -39,18 +39,20 @@ public class OkHttpVtExecutorService extends AbstractExecutorService implements 
         );
     }//new
 
-    public OkHttpVtExecutorService() {
-        this("OK-");
-    }//new
-
     /// @see java.util.concurrent.ThreadPoolExecutor#getTaskCount()
     public long getTaskCount() {
         return cntAdded.longValue();
     }
 
     @Override
+    public String toString() {
+        return "OkHttpVtExecutorService@" + Integer.toHexString(hashCode()) + " cntAdded:" + cntAdded.sum();
+    }
+
+    @Override
     public void execute(@NonNull Runnable command) {
-        newThread(command).start();
+        var thread = newThread(command);
+        thread.start();
     }
 
     @Override

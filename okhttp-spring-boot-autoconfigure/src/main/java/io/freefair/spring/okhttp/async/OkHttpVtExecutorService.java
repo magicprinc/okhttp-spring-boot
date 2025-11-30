@@ -16,11 +16,11 @@ import java.util.concurrent.atomic.LongAdder;
 /// @see java.util.concurrent.Executors#newVirtualThreadPerTaskExecutor()
 @Slf4j
 public class OkHttpVtExecutorService extends AbstractExecutorService implements ThreadFactory, Closeable {
-    public static final OkHttpVtExecutorService INSTANCE = new OkHttpVtExecutorService();
-
     public static final Thread.UncaughtExceptionHandler THREAD_UNCAUGHT_EXCEPTION_HANDLER = (Thread thread, Throwable failure) ->{
         log.warn("UncaughtExceptionHandler @ {}", thread, failure);
     };
+
+    public static final OkHttpVtExecutorService INSTANCE = new OkHttpVtExecutorService();
 
     final LongAdder cntAdded = new LongAdder();
 

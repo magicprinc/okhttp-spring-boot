@@ -22,8 +22,10 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.util.FileSystemUtils;
 
 import javax.net.ssl.HostnameVerifier;
@@ -45,12 +47,12 @@ import static io.freefair.spring.okhttp.OkHttpUtils.nonEmpty;
 @SuppressWarnings("SpringJavaAutowiredFieldsWarningInspection")
 @AutoConfiguration
 @ConditionalOnClass(OkHttpClient.class)
-@EnableConfigurationProperties(OkHttpProperties.class)
+@EnableConfigurationProperties // × (OkHttpProperties.class) bean, not @ConfigurationProperties(prefix = "okhttp")
 public class OkHttp3AutoConfiguration {
     private static final CompressionInterceptor.DecompressionAlgorithm[] CIDA = new CompressionInterceptor.DecompressionAlgorithm[0];
 
-    @Autowired
-    private OkHttpProperties okHttpProperties;
+    //@Autowired  @EnableConfigurationProperties(OkHttpProperties.class)
+    private final OkHttpProperties okHttpProperties = new OkHttpProperties();
 
     @Autowired
     private ObjectProvider<OkHttp3Configurer> configurers;
@@ -64,6 +66,13 @@ public class OkHttp3AutoConfiguration {
     private ObjectProvider<Interceptor> networkInterceptors;
 
     private File tempDirCache = null;
+
+    @Bean("defaultOkHttpProperties")
+    @ConfigurationProperties(prefix = "okhttp")// default prefix, e.g: okhttp.connectTimeout = 1000
+    @Primary // Main configuration. You need other? → @Qualifier
+    public OkHttpProperties getDefaultOkHttpProperties() {
+        return okHttpProperties;
+    }
 
     @Bean
     @ConditionalOnMissingBean

@@ -1,8 +1,11 @@
 package io.freefair.spring.okhttp.autoconfigure;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 import okhttp3.Protocol;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.util.unit.DataSize;
 
@@ -15,7 +18,11 @@ import java.util.concurrent.TimeUnit;
  * @author Lars Grefer
  */
 @Data
-@ConfigurationProperties(prefix = "okhttp")
+@Accessors(chain = true)
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
+//× @ConfigurationProperties(prefix = "okhttp") × @EnableConfigurationProperties(OkHttpProperties.class) on OkHttp3AutoConfiguration
 public class OkHttpProperties {
 
     /**
@@ -23,6 +30,7 @@ public class OkHttpProperties {
      * @see okhttp3.OkHttpClient.Builder#connectTimeout(Duration)
      * @see okhttp3.Interceptor.Chain#withConnectTimeout(int, TimeUnit)
      */
+    @Builder.Default
     private Duration connectTimeout = Duration.ofSeconds(30);
 
     /**
@@ -30,11 +38,13 @@ public class OkHttpProperties {
      * @see okhttp3.OkHttpClient.Builder#readTimeout(Duration)
      * @see okhttp3.Interceptor.Chain#withReadTimeout(int, TimeUnit)
      */
+    @Builder.Default
     private Duration readTimeout = Duration.ofSeconds(120);
 
     /**
      * The default write timeout for new connections.
      */
+    @Builder.Default
     private Duration writeTimeout = Duration.ofSeconds(60);
 
     /**
@@ -46,41 +56,53 @@ public class OkHttpProperties {
      * <p>The default value of 0 disables client-initiated pings.
      * @see okhttp3.OkHttpClient.Builder#pingInterval(Duration)
      */
+    @Builder.Default
     private Duration pingInterval = Duration.ZERO;
 
     @NestedConfigurationProperty
-    private CacheProperties cache = new CacheProperties();
+    private final CacheProperties cache = new CacheProperties();
 
     /**
      * Whether to follow redirects from HTTPS to HTTP and from HTTP to HTTPS.
      */
+    @Builder.Default
     private boolean followSslRedirects = true;
 
     /**
      * Whether to follow redirects.
      */
+    @Builder.Default
     private boolean followRedirects = true;
 
     /**
      * Whether to retry or not when a connectivity problem is encountered.
      */
+    @Builder.Default
     private boolean retryOnConnectionFailure = true;
 
     /**
      * Configure the {@link Protocol Protocols} used by this client to communicate with remote servers.
      */
-    private List<Protocol> protocols = null;
+    private List<Protocol> protocols;
 
-    private boolean addDefaultInterceptors;
+    @Builder.Default
+    private boolean addDefaultInterceptors = true;
 
     @NestedConfigurationProperty
     private final ConnectionPoolProperties connectionPool = new ConnectionPoolProperties();
+
+    @NestedConfigurationProperty
+    private final DispatcherProperties dispatcher = new DispatcherProperties();
 
     /**
      * @author Lars Grefer
      * @see okhttp3.Cache
      */
     @Data
+    @Accessors(chain = true)
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder(toBuilder = true)
     public static class CacheProperties {
 
         private boolean enabled;
@@ -88,6 +110,7 @@ public class OkHttpProperties {
         /**
          * The maximum number of bytes this cache should use to store.
          */
+        @Builder.Default
         private DataSize maxSize = DataSize.ofMegabytes(10);
 
         /**
@@ -100,13 +123,19 @@ public class OkHttpProperties {
      * @see okhttp3.ConnectionPool
      */
     @Data
+    @Accessors(chain = true)
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder(toBuilder = true)
     public static class ConnectionPoolProperties {
 
         /**
          * The maximum number of idle connections for each address.
          */
+        @Builder.Default
         private int maxIdleConnections = 5;
 
+        @Builder.Default
         private Duration keepAliveDuration = Duration.ofMinutes(5);
     }
 
@@ -114,6 +143,10 @@ public class OkHttpProperties {
      * @see okhttp3.Dispatcher
      */
     @Data
+    @Accessors(chain = true)
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder(toBuilder = true)
     public static class DispatcherProperties {
 
         /**
@@ -123,6 +156,7 @@ public class OkHttpProperties {
          * If more than [maxRequests] requests are in flight when this is invoked, those requests will remain in flight.
          * @see okhttp3.Dispatcher#getMaxRequests
          */
+        @Builder.Default
         int maxRequests = 0xFF_FF;
 
         /**
@@ -135,6 +169,7 @@ public class OkHttpProperties {
          * WebSocket connections to hosts **do not** count against this limit.
          * @see okhttp3.Dispatcher#getMaxRequestsPerHost
          */
+        @Builder.Default
         short maxRequestsPerHost = 16;
     }
 }

@@ -20,20 +20,22 @@ public class OkHttpProperties {
 
     /**
      * The default connect timeout for new connections.
-     * @see okhttp3.OkHttpClient.Builder#connectTimeout(java.time.Duration)
+     * @see okhttp3.OkHttpClient.Builder#connectTimeout(Duration)
      * @see okhttp3.Interceptor.Chain#withConnectTimeout(int, TimeUnit)
      */
-    private Duration connectTimeout = Duration.ofSeconds(10);
+    private Duration connectTimeout = Duration.ofSeconds(30);
 
     /**
      * The default read timeout for new connections.
+     * @see okhttp3.OkHttpClient.Builder#readTimeout(Duration)
+     * @see okhttp3.Interceptor.Chain#withReadTimeout(int, TimeUnit)
      */
-    private Duration readTimeout = Duration.ofSeconds(10);
+    private Duration readTimeout = Duration.ofSeconds(120);
 
     /**
      * The default write timeout for new connections.
      */
-    private Duration writeTimeout = Duration.ofSeconds(10);
+    private Duration writeTimeout = Duration.ofSeconds(60);
 
     /**
      * The interval between web socket pings initiated by this client. Use this to
@@ -42,7 +44,7 @@ public class OkHttpProperties {
      * enforced on the acknowledging pongs.
      *
      * <p>The default value of 0 disables client-initiated pings.
-     * @see okhttp3.OkHttpClient.Builder#pingInterval(java.time.Duration)
+     * @see okhttp3.OkHttpClient.Builder#pingInterval(Duration)
      */
     private Duration pingInterval = Duration.ZERO;
 
@@ -69,10 +71,10 @@ public class OkHttpProperties {
      */
     private List<Protocol> protocols = null;
 
+    private boolean addDefaultInterceptors;
+
     @NestedConfigurationProperty
     private final ConnectionPoolProperties connectionPool = new ConnectionPoolProperties();
-
-    private boolean addDefaultInterceptors;
 
     /**
      * @author Lars Grefer
@@ -106,5 +108,33 @@ public class OkHttpProperties {
         private int maxIdleConnections = 5;
 
         private Duration keepAliveDuration = Duration.ofMinutes(5);
+    }
+
+    /**
+     * @see okhttp3.Dispatcher
+     */
+    @Data
+    public static class DispatcherProperties {
+
+        /**
+         * The maximum number of requests to execute concurrently. Above this requests queue in memory,
+         * waiting for the running calls to complete.
+         *
+         * If more than [maxRequests] requests are in flight when this is invoked, those requests will remain in flight.
+         * @see okhttp3.Dispatcher#getMaxRequests
+         */
+        int maxRequests = 0xFF_FF;
+
+        /**
+         * The maximum number of requests for each host to execute concurrently. This limits requests by
+         * the URL's host name. Note that concurrent requests to a single IP address may still exceed this
+         * limit: multiple hostnames may share an IP address or be routed through the same HTTP proxy.
+         *
+         * If more than [maxRequestsPerHost] requests are in flight when this is invoked, those requests  will remain in flight.
+         *
+         * WebSocket connections to hosts **do not** count against this limit.
+         * @see okhttp3.Dispatcher#getMaxRequestsPerHost
+         */
+        short maxRequestsPerHost = 16;
     }
 }

@@ -16,6 +16,8 @@ import java.util.concurrent.TimeUnit;
 ///   .where(WRITE_TIMEOUT, getOrDefault(request, WRITE_TIMEOUT, Duration.ofSeconds(10)))
 ///   .call(()->)
 /// ```
+/// Alternative: defaultClient.newBuilder().readTimeout(5, TimeUnit.SECONDS).build()
+///
 /// @see okhttp3.Interceptor
 /// @see okhttp3.Interceptor.Chain
 /// @see java.lang.ScopedValue#isBound

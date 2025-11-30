@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 /// @see okhttp3.Interceptor.Chain
 /// @see java.lang.ScopedValue#isBound
 /// @see java.lang.ScopedValue#orElse(Object)
+@SuppressWarnings({"preview", "Since15"})
 @NullMarked
 public class ScopedValueTimeoutInterceptor implements Interceptor {
     public static final ScopedValueTimeoutInterceptor INSTANCE = new ScopedValueTimeoutInterceptor();
@@ -30,15 +31,21 @@ public class ScopedValueTimeoutInterceptor implements Interceptor {
 
     public static final ScopedValue<@NonNull Duration> WRITE_TIMEOUT = ScopedValue.newInstance();
 
+    ///  helper [ScopedValue#where]
+    public static <T> ScopedValue.Carrier where(ScopedValue<T> key, T value) {
+        return ScopedValue.where(key, value);
+    }
+
     @Override
     public Response intercept(Chain chain) throws IOException {
-        if (CONNECT_TIMEOUT.orElse(Duration.ZERO).isPositive()){
+        // ? CONNECT_TIMEOUT.orElse(Duration.ZERO).isPositive()
+        if (CONNECT_TIMEOUT.isBound()){
             chain = chain.withConnectTimeout((int) CONNECT_TIMEOUT.get().toMillis(), TimeUnit.MILLISECONDS);
         }
-        if (READ_TIMEOUT.orElse(Duration.ZERO).isPositive()){
+        if (READ_TIMEOUT.isBound()){
             chain = chain.withReadTimeout((int) READ_TIMEOUT.get().toMillis(), TimeUnit.MILLISECONDS);
         }
-        if (WRITE_TIMEOUT.orElse(Duration.ZERO).isPositive()){
+        if (WRITE_TIMEOUT.isBound()){
             chain = chain.withWriteTimeout((int) WRITE_TIMEOUT.get().toMillis(), TimeUnit.MILLISECONDS);
         }
         return chain.proceed(chain.request());

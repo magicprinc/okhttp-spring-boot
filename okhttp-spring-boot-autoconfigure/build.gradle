@@ -23,6 +23,10 @@ compileJava { // tasks.named('compileJava')
     options.compilerArgs += ['--enable-preview']
 }
 
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs += ['--enable-preview']
+}
+
 tasks.named('jacocoTestReport', JacocoReport) {
     reports.xml.required = true
 }
@@ -57,5 +61,5 @@ dependencies {
 
 tasks.named('test', Test) {
     useJUnitPlatform()
-    jvmArgs("--enable-preview")
+    jvmArgs("--enable-preview", "-XX:+EnableDynamicAgentLoading")
 }

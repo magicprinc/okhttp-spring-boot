@@ -18,8 +18,12 @@ import java.util.concurrent.TimeUnit;
 /// ```
 /// @see okhttp3.Interceptor
 /// @see okhttp3.Interceptor.Chain
+/// @see java.lang.ScopedValue#isBound
+/// @see java.lang.ScopedValue#orElse(Object)
 @NullMarked
 public class ScopedValueTimeoutInterceptor implements Interceptor {
+    public static final ScopedValueTimeoutInterceptor INSTANCE = new ScopedValueTimeoutInterceptor();
+
     public static final ScopedValue<@NonNull Duration> CONNECT_TIMEOUT = ScopedValue.newInstance();
 
     public static final ScopedValue<@NonNull Duration> READ_TIMEOUT = ScopedValue.newInstance();
@@ -28,13 +32,13 @@ public class ScopedValueTimeoutInterceptor implements Interceptor {
 
     @Override
     public Response intercept(Chain chain) throws IOException {
-        if (CONNECT_TIMEOUT.isBound()){
+        if (CONNECT_TIMEOUT.orElse(Duration.ZERO).isPositive()){
             chain = chain.withConnectTimeout((int) CONNECT_TIMEOUT.get().toMillis(), TimeUnit.MILLISECONDS);
         }
-        if (READ_TIMEOUT.isBound()){
+        if (READ_TIMEOUT.orElse(Duration.ZERO).isPositive()){
             chain = chain.withReadTimeout((int) READ_TIMEOUT.get().toMillis(), TimeUnit.MILLISECONDS);
         }
-        if (WRITE_TIMEOUT.isBound()){
+        if (WRITE_TIMEOUT.orElse(Duration.ZERO).isPositive()){
             chain = chain.withWriteTimeout((int) WRITE_TIMEOUT.get().toMillis(), TimeUnit.MILLISECONDS);
         }
         return chain.proceed(chain.request());

@@ -124,4 +124,8 @@ public class OkHttpClientRequest extends AbstractClientHttpRequest implements St
         return builder.build();
     }
 
+    public static Request.Builder buildRequest () {
+        return new Request.Builder();
+    }
+
 }

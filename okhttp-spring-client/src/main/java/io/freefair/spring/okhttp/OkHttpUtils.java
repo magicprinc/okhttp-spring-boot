@@ -1,8 +1,9 @@
 package io.freefair.spring.okhttp;
 
 import kotlin.Pair;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.experimental.UtilityClass;
 import lombok.val;
 import okhttp3.Headers;
 import okhttp3.HttpUrl;
@@ -17,9 +18,9 @@ import java.util.List;
  @see okhttp3.Headers.Builder
  @see org.springframework.http.HttpHeaders
  */
-@UtilityClass
 @NullMarked
-public class OkHttpUtils {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class OkHttpUtils {
     public static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
 
     public static HttpHeaders toSpringHeaders (@NonNull Headers okhttpHeaders) {

@@ -118,6 +118,7 @@ public class OkHttp3AutoConfiguration {
             // see also: okhttp3.brotli.BrotliInterceptor
             da.add(Gzip.INSTANCE);
             builder.addInterceptor(new CompressionInterceptor(da.toArray(CIDA)));
+            builder.addInterceptor(ScopedValueTimeoutInterceptor.INSTANCE);
         }
 
         networkInterceptors.forEach(builder::addNetworkInterceptor);

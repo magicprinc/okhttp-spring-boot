@@ -3,6 +3,7 @@ package io.freefair.spring.okhttp.client;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.val;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -10,13 +11,12 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import okio.Buffer;
 import okio.ByteString;
+import org.jspecify.annotations.Nullable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.StreamingHttpOutputMessage;
 import org.springframework.http.client.AbstractClientHttpRequest;
 import org.springframework.http.client.ClientHttpRequest;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -42,15 +42,16 @@ public class OkHttpClientRequest extends AbstractClientHttpRequest implements St
 
     private final URI uri;
 
-    /*** @see org.springframework.http.HttpRequest#getMethod */
+    /** @see org.springframework.http.HttpRequest#getMethod */
     @Getter(onMethod_=@Override) private final HttpMethod method;
 
+    /// @see org.springframework.http.client.AbstractStreamingClientHttpRequest#body
+    /// @see org.springframework.http.StreamingHttpOutputMessage.Body
+    private @Nullable Body streamingBody;
 
-    @Nullable
-    private Body streamingBody;
-
-    @Nullable
-    private Buffer bufferBody;
+    /// @see org.springframework.http.client.AbstractStreamingClientHttpRequest#bodyStream
+    /// @see okio.Buffer
+    private @Nullable Buffer bufferBody;
 
 
     @Override
@@ -77,20 +78,18 @@ public class OkHttpClientRequest extends AbstractClientHttpRequest implements St
     }
 
     @Override
-    protected ClientHttpResponse executeInternal(HttpHeaders headers) throws IOException {
+    protected OkHttpClientResponse executeInternal(HttpHeaders headers) throws IOException {
 
         Request okHttpRequest = buildRequest(headers);
 
-        Response okHttpResponse = this.okHttpClient.newCall(okHttpRequest).execute();
+        Response okHttpResponse = okHttpClient.newCall(okHttpRequest).execute();
 
         return new OkHttpClientResponse(okHttpResponse);
     }
 
     private Request buildRequest(HttpHeaders headers) throws MalformedURLException {
-
-        Request.Builder builder = new Request.Builder();
-
-        builder.url(uri.toURL());
+        val builder = new Request.Builder()
+            .url(uri.toURL());
 
         MediaType contentType = null;
 
@@ -107,17 +106,19 @@ public class OkHttpClientRequest extends AbstractClientHttpRequest implements St
                 headers.setContentLength(bodyData.size());
             }
             body = RequestBody.create(bodyData, contentType);
-        } else if (streamingBody != null) {
+        }
+        else if (streamingBody != null) {
             body = new StreamingBodyRequestBody(streamingBody, contentType, headers.getContentLength());
-        } else if (okhttp3.internal.http.HttpMethod.requiresRequestBody(method.name())) {
+        }
+        else if (okhttp3.internal.http.HttpMethod.requiresRequestBody(method.name())){
             body = RequestBody.create(EMPTY_BYTE_ARRAY, contentType);
         }
 
         builder.method(getMethod().name(), body);
 
-        headers.forEach((name, values) -> {
-            for (String value : values) {
-                builder.addHeader(name, value);
+        headers.forEach((headerName, headerValues) -> {
+            for (String value : headerValues) {
+                builder.addHeader(headerName, value);
             }
         });
 

@@ -20,7 +20,9 @@ public class OkHttpClientRequestFactoryBuilderAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(ClientHttpRequestFactoryBuilder.class)
-    public OkHttpClientRequestFactoryBuilder okHttpClientRequestFactoryBuilder(OkHttpClient okHttpClient) {
+    public OkHttpClientRequestFactoryBuilder okHttpClientRequestFactoryBuilder(
+            OkHttpClient okHttpClient
+    ){
         return new OkHttpClientRequestFactoryBuilder(okHttpClient);
     }
 

@@ -16,7 +16,12 @@ import javax.net.ssl.X509TrustManager;
 import java.time.Duration;
 
 /**
+ * https://github.com/Hakky54/ayza
+ * https://github.com/google/conscrypt
+ *
  * @author Lars Grefer
+ * @see org.springframework.boot.http.client.ClientHttpRequestFactorySettings
+ * @see org.springframework.boot.ssl.SslBundle
  */
 @RequiredArgsConstructor
 public class OkHttpClientRequestFactoryBuilder implements ClientHttpRequestFactoryBuilder<OkHttpClientRequestFactory> {

@@ -30,6 +30,16 @@ public class OkHttpClientResponse implements ClientHttpResponse {
         return okHttpResponse.headers();
     }
 
+    /// The request that initiated this HTTP response. This is _not necessarily the same request_ issued by the application:\
+    /// It may be transformed by the user's interceptors. E.g: an application interceptor may add headers like User-Agent.\
+    /// It may be the request generated in response to an HTTP redirect or authentication challenge. In this case the request URL may be different than the initial request URL.
+    /// Use the request of the [okhttp3.Response#networkResponse()] to get the wire-level request that was transmitted.
+    /// In the case of follow-ups and redirects, also look at the request of the [okhttp3.Response#priorResponse] objects, which have its own priorResponse.
+    /// @see okhttp3.Response#request
+    public okhttp3.Request getOriginalOkHttpRequest() {
+        return okHttpResponse.request();
+    }
+
     @Override
     public HttpStatusCode getStatusCode() {
         return HttpStatusCode.valueOf(okHttpResponse.code());
@@ -49,18 +59,19 @@ public class OkHttpClientResponse implements ClientHttpResponse {
 
     @Override
     public HttpHeaders getHeaders() {
-        if (springHeaders == null) {
+        if (springHeaders == null){
             springHeaders = OkHttpUtils.toSpringHeaders(okHttpResponse.headers());
         }
 
         return springHeaders;
     }
 
+    /// Similar to [okhttp3.Response#close()], but okHttpResponse.close() doesn't check body for null
+    /// @see org.springframework.http.client.ClientHttpResponse#close
     @Override
-    public void close() {
-        // ~ okHttpResponse.close() <- doesn't check for null
+    public void close() throws RuntimeException {
         ResponseBody body = okHttpResponse.body();
-        if (body != null) {
+        if (body != null){
             body.close();
         }
     }

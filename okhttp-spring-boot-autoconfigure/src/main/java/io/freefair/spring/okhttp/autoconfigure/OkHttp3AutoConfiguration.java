@@ -6,6 +6,7 @@ import io.freefair.spring.okhttp.OkHttp3Configurer;
 import io.freefair.spring.okhttp.async.OkHttpVtExecutorService;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import okhttp3.Cache;
 import okhttp3.CertificatePinner;
 import okhttp3.CompressionInterceptor;
@@ -50,10 +51,10 @@ import static io.freefair.spring.okhttp.OkHttpUtils.nonEmpty;
 @ConditionalOnClass(OkHttpClient.class)
 @EnableConfigurationProperties // × (OkHttpProperties.class) bean, not @ConfigurationProperties(prefix = "okhttp")
 public class OkHttp3AutoConfiguration {
-    private static final CompressionInterceptor.DecompressionAlgorithm[] CIDA = new CompressionInterceptor.DecompressionAlgorithm[0];
+    static final CompressionInterceptor.DecompressionAlgorithm[] CIDA = new CompressionInterceptor.DecompressionAlgorithm[0];
 
     //@Autowired  @EnableConfigurationProperties(OkHttpProperties.class)
-    private final OkHttpProperties okHttpProperties = new OkHttpProperties();
+    private final OkHttpProperties defaultOkHttpProperties = new OkHttpProperties();
 
     @Autowired
     private ObjectProvider<OkHttp3Configurer> configurers;
@@ -66,17 +67,18 @@ public class OkHttp3AutoConfiguration {
     @NetworkInterceptor
     private ObjectProvider<Interceptor> networkInterceptors;
 
-    private File tempDirCache = null;
+    private File tempDirCache;
 
     @Bean("defaultOkHttpProperties")
     @ConfigurationProperties(prefix = "okhttp")// default prefix, e.g: okhttp.connectTimeout = 1000
     @Primary // Main configuration. You need other? → @Qualifier
     public OkHttpProperties getDefaultOkHttpProperties() {
-        return okHttpProperties;
+        return defaultOkHttpProperties;
     }
 
     @Bean
     public OkHttpClient okHttp3Client(
+            OkHttpProperties okHttpProperties,
             ObjectProvider<Cache> cache,
             ObjectProvider<CookieJar> cookieJar,
             ObjectProvider<Dns> dns,
@@ -143,16 +145,31 @@ public class OkHttp3AutoConfiguration {
     /// @see io.freefair.spring.okhttp.autoconfigure.OkHttpProperties#dispatcher
     @Bean
     @ConditionalOnMissingBean
-    public Dispatcher okHttp3Dispatcher() {
-        var dispatcher = new Dispatcher(OkHttpVtExecutorService.INSTANCE);
-        dispatcher.setMaxRequests(okHttpProperties.getDispatcher().maxRequests);
-        dispatcher.setMaxRequestsPerHost(okHttpProperties.getDispatcher().maxRequestsPerHost);
+    public static Dispatcher okHttp3Dispatcher(
+            OkHttpProperties okHttpProperties
+    ){
+        return okHttp3Dispatcher(
+                okHttpProperties.getDispatcher().maxRequests,
+                okHttpProperties.getDispatcher().maxRequestsPerHost
+        );
+    }
+
+    public static Dispatcher okHttp3Dispatcher(
+            int maxRequests,
+            short maxRequestsPerHost
+    ){
+        val dispatcher = new Dispatcher(OkHttpVtExecutorService.INSTANCE);
+        dispatcher.setMaxRequests(maxRequests);
+        dispatcher.setMaxRequestsPerHost(maxRequestsPerHost);
         return dispatcher;
     }
 
+    /// @see ConnectionPool
     @Bean
     @ConditionalOnMissingBean
-    public ConnectionPool okHttp3ConnectionPool() {
+    public static ConnectionPool okHttp3ConnectionPool(
+            OkHttpProperties okHttpProperties
+    ){
         int maxIdleConnections = okHttpProperties.getConnectionPool().getMaxIdleConnections();
         Duration keepAliveDuration = okHttpProperties.getConnectionPool().getKeepAliveDuration();
         return new ConnectionPool(maxIdleConnections, keepAliveDuration.toNanos(), TimeUnit.NANOSECONDS);
@@ -161,7 +178,9 @@ public class OkHttp3AutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(value = "okhttp.cache.enabled", havingValue = "true", matchIfMissing = true)
-    public Cache okHttp3Cache() throws IOException {
+    public Cache okHttp3Cache(
+            OkHttpProperties okHttpProperties
+    ) throws IOException {
         File directory = okHttpProperties.getCache().getDirectory();
         if (directory == null) {
             tempDirCache = Files.createTempDirectory("okhttp-cache").toFile();
@@ -172,12 +191,12 @@ public class OkHttp3AutoConfiguration {
 
     @PreDestroy
     public void deleteTempCache() {
-        if (tempDirCache != null) {
-            log.debug("Deleting the temporary OkHttp Cache at {}", tempDirCache.getAbsolutePath());
+        if (tempDirCache != null){
+            log.debug("deleteTempCache: Deleting the temporary OkHttp Cache: {}", tempDirCache.getAbsolutePath());
             try {
                 FileSystemUtils.deleteRecursively(tempDirCache);
-            } catch (Exception e) {
-                log.warn("Failed to delete the temporary OkHttp Cache at {}", tempDirCache.getAbsolutePath());
+            } catch (Exception e){
+                log.warn("deleteTempCache: Failed to delete the temporary OkHttp Cache: {}", tempDirCache.getAbsolutePath(), e);
             }
         }
     }

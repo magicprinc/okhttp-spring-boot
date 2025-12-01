@@ -141,6 +141,15 @@ public class OkHttp3AutoConfiguration {
         return builder.build();
     }
 
+    /// @see ScopedValueTimeoutInterceptor
+    public static OkHttpClient withTimeouts(OkHttpClient client, int connectTimeout, int readTimeout, int writeTimeout) {
+        return client.newBuilder()
+                .connectTimeout(connectTimeout, TimeUnit.MILLISECONDS)
+                .readTimeout(readTimeout, TimeUnit.MILLISECONDS)
+                .writeTimeout(writeTimeout, TimeUnit.MILLISECONDS)
+                .build();
+    }
+
     /// @see okhttp3.Dispatcher
     /// @see io.freefair.spring.okhttp.autoconfigure.OkHttpProperties#dispatcher
     @Bean
@@ -165,7 +174,7 @@ public class OkHttp3AutoConfiguration {
     }
 
     /// @see ConnectionPool
-    @Bean
+    @Bean(destroyMethod = "evictAll")
     @ConditionalOnMissingBean
     public static ConnectionPool okHttp3ConnectionPool(
             OkHttpProperties okHttpProperties

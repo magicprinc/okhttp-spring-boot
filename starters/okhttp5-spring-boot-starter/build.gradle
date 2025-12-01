@@ -13,18 +13,24 @@ dependencies {
     api 'com.squareup.okhttp3:okhttp'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation("org.mockito:mockito-junit-jupiter:latest.release")
+    testImplementation("net.bytebuddy:byte-buddy-agent:latest.release")
 }
 
 compileJava { // tasks.named('compileJava')
     inputs.files(processResources)
-    options.compilerArgs += ['--enable-preview']
 }
 
 tasks.withType(JavaCompile).configureEach {
-    options.compilerArgs += ['--enable-preview']
+    options.compilerArgs.addAll(['-Xlint:all,-serial', '-parameters', '-g'])
+    options.release.set(25) // javac --release 7..21 ~ libs.versions.jdk.get().toInteger()
 }
 
 tasks.named('test', Test) {
     useJUnitPlatform()
-    jvmArgs("--enable-preview", "-XX:+EnableDynamicAgentLoading")
+    jvmArgs = [
+            "--add-opens=java.base/java.lang=ALL-UNNAMED",
+            "-Djdk.attach.allowAttachSelf=true",
+            "-XX:+EnableDynamicAgentLoading"
+    ]
 }

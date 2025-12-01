@@ -22,7 +22,6 @@ import java.util.concurrent.TimeUnit;
 /// @see okhttp3.Interceptor.Chain
 /// @see java.lang.ScopedValue#isBound
 /// @see java.lang.ScopedValue#orElse(Object)
-@SuppressWarnings({"preview", "Since15"})
 @NullMarked
 public class ScopedValueTimeoutInterceptor implements Interceptor {
     public static final ScopedValueTimeoutInterceptor INSTANCE = new ScopedValueTimeoutInterceptor();

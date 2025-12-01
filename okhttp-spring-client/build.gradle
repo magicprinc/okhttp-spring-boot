@@ -16,8 +16,20 @@ dependencies {
     testImplementation "org.springframework.boot:spring-boot-starter-test"
     testImplementation "org.springframework.boot:spring-boot-starter-web"
     testImplementation("org.instancio:instancio-junit:latest.release")
+    testImplementation("org.mockito:mockito-junit-jupiter:latest.release")
+    testImplementation("net.bytebuddy:byte-buddy-agent:latest.release")
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs.addAll(['-Xlint:all,-serial', '-parameters'])
+    options.release.set(25) // javac --release 7..25
 }
 
 tasks.named("test", Test) {
     useJUnitPlatform()
+    jvmArgs = [
+            "--add-opens=java.base/java.lang=ALL-UNNAMED",
+            "-Djdk.attach.allowAttachSelf=true",
+            "-XX:+EnableDynamicAgentLoading"
+    ]
 }

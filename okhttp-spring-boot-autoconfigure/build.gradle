@@ -18,13 +18,13 @@ lombok {
     version = 'latest.release'
 }
 
-compileJava { // tasks.named('compileJava')
-    inputs.files(processResources)
-    options.compilerArgs += ['--enable-preview']
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs.addAll(['-Xlint:all,-serial', '-parameters'])
+    options.release.set(25) // javac --release 7..21 ~ libs.versions.jdk.get().toInteger()
 }
 
-tasks.withType(JavaCompile).configureEach {
-    options.compilerArgs += ['--enable-preview']
+compileJava { // tasks.named('compileJava')
+    inputs.files(processResources)
 }
 
 tasks.named('jacocoTestReport', JacocoReport) {
@@ -46,14 +46,14 @@ dependencies {
     optional 'org.springframework:spring-web'
     optional 'org.springframework.boot:spring-boot-starter-actuator'
 
-    optional platform('com.squareup.okhttp3:okhttp-bom:5.3.2')
+    optional platform('com.squareup.okhttp3:okhttp-bom:5.+')
     optional 'com.squareup.okhttp3:okhttp'
     optional 'com.squareup.okhttp3:logging-interceptor'
     optional 'com.squareup.okhttp3:okhttp-zstd'
     optional('com.squareup.okhttp3:okhttp-brotli')
 
     testImplementation 'org.springframework.boot:spring-boot-starter-web'
-    testImplementation('org.springframework.boot:spring-boot-starter-test') {
+    testImplementation('org.springframework.boot:spring-boot-starter-test'){
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
     }
     testImplementation("org.junit-pioneer:junit-pioneer:latest.release")
@@ -61,5 +61,9 @@ dependencies {
 
 tasks.named('test', Test) {
     useJUnitPlatform()
-    jvmArgs("--enable-preview", "-XX:+EnableDynamicAgentLoading")
+    jvmArgs = [
+            "--add-opens=java.base/java.lang=ALL-UNNAMED",
+            "-Djdk.attach.allowAttachSelf=true",
+            "-XX:+EnableDynamicAgentLoading"
+    ]
 }
